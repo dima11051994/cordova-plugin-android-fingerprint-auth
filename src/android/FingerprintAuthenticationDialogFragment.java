@@ -47,6 +47,8 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment
     private Button mCancelButton;
     private Button mSecondDialogButton;
     private View mFingerprintContent;
+    private boolean isAsymmetricSetup;
+    private boolean isAsymmetricSign;
 
     private Stage mStage = Stage.FINGERPRINT;
 
@@ -77,7 +79,11 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment
                              Bundle savedInstanceState) {
         Bundle args = getArguments();
         boolean disableBackup = args.getBoolean("disableBackup");
+        isAsymmetricSetup = args.getBoolean("setupAsymmetric", false);
+        isAsymmetricSign = args.getBoolean("asymmetricEncryption", false);
         Log.d(TAG, "disableBackup: " + disableBackup);
+        Log.d(TAG, "isAsymmetricSetup: " + isAsymmetricSetup);
+        Log.d(TAG, "isAsymmetricSign: " + isAsymmetricSign);
 
         int fingerprint_auth_dialog_title_id = getResources()
                 .getIdentifier("fingerprint_auth_dialog_title", "string",
@@ -217,7 +223,13 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment
         if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
             // Challenge completed, proceed with using cipher
             if (resultCode == getActivity().RESULT_OK) {
-                FingerprintAuth.onAuthenticated(false /* used backup */);
+                if (isAsymmetricSetup) {
+                    FingerprintAuth.onSuccessfulAsymmetricSetup();
+                } else if (isAsymmetricSign) {
+                    FingerprintAuth.onAuthenticatedWithAsymmetricKeys();
+                } else {
+                    FingerprintAuth.onAuthenticated(false /* used backup */);
+                }
             } else {
                 // The user canceled or didn’t complete the lock screen
                 // operation. Go to error/cancellation flow.
@@ -231,7 +243,13 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment
     public void onAuthenticated() {
         // Callback from FingerprintUiHelper. Let the activity know that authentication was
         // successful.
-        FingerprintAuth.onAuthenticated(true /* withFingerprint */);
+        if (isAsymmetricSetup) {
+            FingerprintAuth.onSuccessfulAsymmetricSetup();
+        } else if (isAsymmetricSign) {
+            FingerprintAuth.onAuthenticatedWithAsymmetricKeys();
+        } else {
+            FingerprintAuth.onAuthenticated(true /* withFingerprint */);
+        }
         dismiss();
     }
 
