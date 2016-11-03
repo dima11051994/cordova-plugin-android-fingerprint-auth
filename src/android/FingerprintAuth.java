@@ -298,7 +298,7 @@ public class FingerprintAuth extends CordovaPlugin {
                         mCallbackContext.error("There is no generated key pair for this clientId");
                         mCallbackContext.sendPluginResult(mPluginResult);
                     }
-                    if (key != null && !initSignature()) {
+                    else if (!initSignature()) {
                         mPluginResult = new PluginResult(PluginResult.Status.ERROR);
                         mCallbackContext.error("Failes to init Signature");
                         mCallbackContext.sendPluginResult(mPluginResult);
